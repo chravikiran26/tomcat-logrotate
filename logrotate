@@ -1,0 +1,53 @@
+How to rotate Tomcat catalina.out
+
+
+
+
+If catalina.out becomes 2GB in size, tomcat crashes and fails to start without any error message. To avoid this scenario you should rotate catalina.out frequently. This article describes how to setup auto rotation of catalina.out on a linux/unix machine.
+
+How to automatically rotate catalina.out daily or when it becomes bigger than 5M
+1. Create this file
+
+/etc/logrotate.d/tomcat  
+2. Copy the following contents into the above file
+
+view plaincopy to clipboardprint?
+/var/log/tomcat/catalina.out {  
+ copytruncate  
+ daily  
+ rotate 7  
+ compress  
+ missingok  
+ size 5M  
+}  
+About the above configuration:
+
+Make sure that the path /var/log/tomcat/catalina.out above is adjusted to point to your tomcat’s catalina.out
+daily - rotates the catalina.out daily
+rotate – keeps at most 7 log files
+compress – compresses the rotated files
+size – rotates if the size of catalina.out is bigger than 5M
+copytruncate – truncates the original log file in place after creating a copy, instead of moving the old log file and optionally creating a new one, It can be used when some program can not be told to close its logfile and thus might continue writing (appending) to the previous log file forever. Note that there is a very small time slice between copying the file and truncating it, so some logging data might be lost. When this option is used, the create option will have no effect, as the old log file stays in place.
+You don’t need to do anything else.
+
+How it works
+Every night the cron daemon runs jobs listed in the /etc/cron.daily/ directory
+This triggers the /etc/cron.daily/logrotate file which is generally shipped with linux installations. It runs the command “/usr/sbin/logrotate /etc/logrotate.conf“
+The /etc/logrotate.conf includes all scripts in the /etc/logrotate.d/ directory.
+This triggers the /etc/logrotate.d/tomcat file that you wrote in the previous step.
+Run logrotate manually
+Run the following command to run the cron job manually
+
+/usr/sbin/logrotate /etc/logrotate.conf  
+Is it completely safe?
+See the description of copytruncate method above. There is a slight chance of a small amount of logging data loss between copy and truncate steps, usually it is acceptable but sometimes its not.
+
+More logrotate options
+To see all logrotate options on your system, see the manual:
+
+man logrotate  
+     
+
+Related posts:
+
+How to automatically recover Tomcat from crashes
